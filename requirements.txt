@@ -1,0 +1,8 @@
+insightface 
+scikit-learn 
+opencv-python 
+tqdm
+onnxruntime
+mysql-connector-python
+imutils
+ultralytics
