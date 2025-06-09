@@ -9,7 +9,7 @@ from db.insertions import insertar_alerta, insertar_deteccion_arma
 
 bot = TelegramBot(properties_path='./telegram_bot/.telegram_keys')
 
-def notify_last_detection(frame):
+def notify_last_detection(frame, mensaje=None):
     """
     Guarda el frame con la detección, lo envía a Telegram y lo registra en la base de datos.
     """
@@ -26,6 +26,10 @@ def notify_last_detection(frame):
     print(f"[INFO] Imagen guardada: {filename}")
 
     # Enviar a Telegram
+    if mensaje is None:
+        mensaje = "Se detectó un arma en el laboratorio."
+        
+    # Enviar a Telegram
     bot.send_photo_to_channel(filename, 'Arma detectada')
 
     # Registro en base de datos
@@ -37,7 +41,6 @@ def notify_last_detection(frame):
     # Insertar y obtener ID
     arma_id = insertar_deteccion_arma(fecha, tipo_arma, confianza, ubicacion, filename)
 
-    mensaje = 'Se detectó un arma tipo pistola en el Lab B'
     insertar_alerta(tipo=tipo_arma, mensaje=mensaje, fecha_hora_envio=fecha, deteccion_arma_id=arma_id)
 
     return filename
