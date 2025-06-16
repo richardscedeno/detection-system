@@ -6,3 +6,4 @@ onnxruntime
 mysql-connector-python
 imutils
 ultralytics
+customtkinter
