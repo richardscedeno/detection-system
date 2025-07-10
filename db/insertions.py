@@ -2,6 +2,8 @@
 from db.connection import get_connection
 import json
 #from mysql.connector import Error
+from datetime import datetime
+
 
 def insertar_deteccion_arma(fecha_hora, tipo_arma, confianza, ubicacion, imagen_path):
     conn = get_connection()
@@ -149,3 +151,31 @@ def insertar_persona(tipo, identificacion, nombre, apellido, datos_especificos, 
     finally:
         cursor.close()
         conn.close()
+
+
+def insertar_deteccion_facial(persona_id, fecha_hora, camara_id, confianza, imagen_path):
+    conn = get_connection()
+    if conn is None:
+        return None
+
+    try:
+        cursor = conn.cursor()
+
+        sql = """
+        INSERT INTO detecciones_faciales (persona_id, fecha_hora, camara_id, confianza, imagen_path)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        values = (persona_id, fecha_hora, camara_id, confianza, imagen_path)
+        cursor.execute(sql, values)
+        conn.commit()
+
+        return cursor.lastrowid  # ID de la detección insertada
+
+    except Exception as e:
+        print(f"Error insertando detección facial: {e}")
+        return None
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+

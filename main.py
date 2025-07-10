@@ -7,8 +7,9 @@ import joblib
 import numpy as np
 from insightface.app import FaceAnalysis
 from ultralytics import YOLO
-import functions  # Asegúrate de que notify_last_detection(frame, mensaje=None) lo soporte
+import functions
 from db.queries import obtener_persona_por_indice
+import threading
 
 # Inicializar modelos
 app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
@@ -35,6 +36,8 @@ running = False
 def detectar_y_mostrar(frame):
     deteccion_realizada = False
     persona_detectada = None
+    persona_no_identificada = False
+    frame_copy_telegram_face = frame.copy()
 
     # Detección de armas
     resultados = modelo_armas(frame, verbose=False)[0]
@@ -59,6 +62,15 @@ def detectar_y_mostrar(frame):
         if max_prob < THRESHOLD:
             name = "Sin categoria"
             color = (0, 0, 255)
+            persona_no_identificada = True
+            
+            cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            label = f"{name} ({max_prob:.2f})"
+            cv2.putText(frame, label, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            
+             # También dibujar recuadro y etiqueta en la imagen que se enviará a Telegram
+            #cv2.rectangle(frame_copy_telegram_face, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            #cv2.putText(frame_copy_telegram_face, label, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
         else:
             name = le.inverse_transform([pred])[0]
             persona_detectada = obtener_persona_por_indice(pred)
@@ -79,6 +91,10 @@ def detectar_y_mostrar(frame):
         else:
             mensaje = "Arma detectada. Persona no identificada."
         functions.notify_last_detection(frame, mensaje=mensaje)
+
+    if persona_no_identificada:
+        threading.Thread(target=functions.notify_face, args=(frame_copy_telegram_face.copy(),), daemon=True).start()
+
 
     return frame
 
@@ -155,7 +171,7 @@ def seleccionar_imagen():
                     else:
                         persona_info += "Persona no encontrada en la base de datos.\n\n"
                 else:
-                    persona_info += "Reconocimiento facial por debajo del umbral.\n\n"
+                    persona_info += "Reconocimiento facial: Persona no Registrada...\n\n"
 
             info_label.configure(text=persona_info)
 

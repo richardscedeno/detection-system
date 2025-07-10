@@ -15,9 +15,9 @@ app.prepare(ctx_id=0)
 cap = cv2.VideoCapture(1)
 
 if not cap.isOpened():
-    raise RuntimeError("❌ No se pudo abrir la cámara")
+    raise RuntimeError("No se pudo abrir la cámara")
 
-print("🎥 Cámara iniciada. Presiona 'q' para salir.")
+print("Cámara iniciada. Presiona 'q' para salir.")
 
 while True:
     ret, frame = cap.read()
@@ -35,7 +35,7 @@ while True:
         max_prob = np.max(probs)
         pred = np.argmax(probs)
 
-        THRESHOLD = 0.65  # puedes probar entre 0.6 y 0.8
+        THRESHOLD = 0.65
 
         if max_prob < THRESHOLD:
             name = "sin categoria"
